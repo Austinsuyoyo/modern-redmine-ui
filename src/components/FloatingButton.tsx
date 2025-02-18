@@ -2,18 +2,12 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
-import { Settings, Moon, Sun, MessageSquare, X } from "lucide-react";
+import { Settings, MessageSquare, X } from "lucide-react";
 import { SettingsDialog } from "./SettingsDialog";
 import { FeedbackDialog } from "./FeedbackDialog";
-import { useTheme } from "@/hooks/use-theme";
 
 export const FloatingButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
-
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
-  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -43,19 +37,6 @@ export const FloatingButton = () => {
                 <SettingsDialog />
               </DialogContent>
             </Dialog>
-
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-12 w-12 rounded-full shadow-md"
-              onClick={toggleTheme}
-            >
-              {theme === "light" ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
-            </Button>
 
             <Dialog>
               <DialogTrigger asChild>

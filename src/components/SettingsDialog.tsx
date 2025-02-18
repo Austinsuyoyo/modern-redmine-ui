@@ -28,6 +28,13 @@ interface Settings {
     AI_NOTE_POLISH: AIFeature;
     AI_WEEKLY_REPORT: AIFeature;
   };
+  script: {
+    updateInterval: number;
+    debugMode: boolean;
+    allowExperimental: boolean;
+    autoBackup: boolean;
+    backupInterval: number;
+  };
 }
 
 export const SettingsDialog = () => {
@@ -61,6 +68,13 @@ export const SettingsDialog = () => {
         model: "gpt-4o-mini",
         systemPrompt: `You are an assistant that creates weekly summaries...`,
       },
+    },
+    script: {
+      updateInterval: 60,
+      debugMode: false,
+      allowExperimental: false,
+      autoBackup: true,
+      backupInterval: 24,
     },
   });
 
@@ -104,10 +118,11 @@ export const SettingsDialog = () => {
       <h2 className="text-2xl font-semibold mb-6">Settings</h2>
       
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="ai">AI Features</TabsTrigger>
           <TabsTrigger value="api">API Settings</TabsTrigger>
+          <TabsTrigger value="script">Script</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -218,6 +233,102 @@ export const SettingsDialog = () => {
               </>
             )}
           </Button>
+        </TabsContent>
+
+        <TabsContent value="script" className="space-y-6">
+          <div className="space-y-2">
+            <Label>Update Interval (minutes)</Label>
+            <Input
+              type="number"
+              min="1"
+              max="1440"
+              value={settings.script.updateInterval}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  script: {
+                    ...settings.script,
+                    updateInterval: parseInt(e.target.value) || 60,
+                  },
+                })
+              }
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label>Debug Mode</Label>
+              <p className="text-sm text-muted-foreground">
+                Enable console logging for debugging
+              </p>
+            </div>
+            <Switch
+              checked={settings.script.debugMode}
+              onCheckedChange={(checked) =>
+                setSettings({
+                  ...settings,
+                  script: { ...settings.script, debugMode: checked },
+                })
+              }
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label>Experimental Features</Label>
+              <p className="text-sm text-muted-foreground">
+                Enable experimental script features
+              </p>
+            </div>
+            <Switch
+              checked={settings.script.allowExperimental}
+              onCheckedChange={(checked) =>
+                setSettings({
+                  ...settings,
+                  script: { ...settings.script, allowExperimental: checked },
+                })
+              }
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label>Auto Backup</Label>
+              <p className="text-sm text-muted-foreground">
+                Automatically backup user data
+              </p>
+            </div>
+            <Switch
+              checked={settings.script.autoBackup}
+              onCheckedChange={(checked) =>
+                setSettings({
+                  ...settings,
+                  script: { ...settings.script, autoBackup: checked },
+                })
+              }
+            />
+          </div>
+
+          {settings.script.autoBackup && (
+            <div className="space-y-2">
+              <Label>Backup Interval (hours)</Label>
+              <Input
+                type="number"
+                min="1"
+                max="168"
+                value={settings.script.backupInterval}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    script: {
+                      ...settings.script,
+                      backupInterval: parseInt(e.target.value) || 24,
+                    },
+                  })
+                }
+              />
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
