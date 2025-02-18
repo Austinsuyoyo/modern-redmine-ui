@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Check, Loader2, X } from "lucide-react";
+import { Textarea } from "./ui/textarea";
 
 interface AIFeature {
   enabled: boolean;
@@ -178,17 +178,71 @@ export const SettingsDialog = () => {
 
         <TabsContent value="ai" className="space-y-6">
           {Object.entries(settings.features).map(([key, feature]) => (
-            <div key={key} className="flex items-start justify-between p-4 rounded-lg border">
-              <div className="space-y-1">
-                <Label>{feature.label}</Label>
-                <p className="text-sm text-muted-foreground">
-                  {feature.description}
-                </p>
+            <div key={key} className="space-y-4 p-4 rounded-lg border">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <Label>{feature.label}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </div>
+                <Switch
+                  checked={feature.enabled}
+                  onCheckedChange={() => toggleFeature(key as keyof Settings['features'])}
+                />
               </div>
-              <Switch
-                checked={feature.enabled}
-                onCheckedChange={() => toggleFeature(key as keyof Settings['features'])}
-              />
+
+              {feature.enabled && (
+                <div className="space-y-4 mt-4 pt-4 border-t">
+                  <div className="space-y-2">
+                    <Label>Model</Label>
+                    <Select
+                      value={feature.model}
+                      onValueChange={(value) =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          features: {
+                            ...prev.features,
+                            [key]: {
+                              ...prev.features[key as keyof Settings['features']],
+                              model: value,
+                            },
+                          },
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4o-mini">GPT-4O Mini</SelectItem>
+                        <SelectItem value="gpt-4o">GPT-4O</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>System Prompt</Label>
+                    <Textarea
+                      placeholder="Enter system prompt rules..."
+                      value={feature.systemPrompt}
+                      onChange={(e) =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          features: {
+                            ...prev.features,
+                            [key]: {
+                              ...prev.features[key as keyof Settings['features']],
+                              systemPrompt: e.target.value,
+                            },
+                          },
+                        }))
+                      }
+                      className="min-h-[200px] font-mono text-sm"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </TabsContent>
