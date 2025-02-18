@@ -4,9 +4,10 @@ import { Switch } from "./ui/switch";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Loader2, X, Pencil } from "lucide-react";
 import { Textarea } from "./ui/textarea";
 
 interface AIFeature {
@@ -14,6 +15,7 @@ interface AIFeature {
   label: string;
   description: string;
   model: string;
+  customModel: string;
   systemPrompt: string;
 }
 
@@ -37,9 +39,16 @@ interface Settings {
   };
 }
 
+const MODEL_OPTIONS = [
+  { value: "gpt-4o-mini", label: "GPT-4O Mini" },
+  { value: "gpt-4o", label: "GPT-4O" },
+  { value: "custom", label: "Custom Model" }
+];
+
 export const SettingsDialog = () => {
   const { toast } = useToast();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [selectedFeatureKey, setSelectedFeatureKey] = useState<keyof Settings['features'] | null>(null);
   const [settings, setSettings] = useState<Settings>({
     notifications: true,
     autoSync: true,
@@ -52,6 +61,7 @@ export const SettingsDialog = () => {
         label: "AI Editor Assistant",
         description: "Adds a magic wand button to help fill daily updates",
         model: "gpt-4o-mini",
+        customModel: "",
         systemPrompt: `You are a helpful assistant that analyzes daily updates...`,
       },
       AI_NOTE_POLISH: {
@@ -59,6 +69,7 @@ export const SettingsDialog = () => {
         label: "AI Note Polish",
         description: "Quick edit button to improve note formatting and clarity",
         model: "gpt-4o-mini",
+        customModel: "",
         systemPrompt: `You are a helpful assistant that analyzes daily updates...`,
       },
       AI_WEEKLY_REPORT: {
@@ -66,6 +77,7 @@ export const SettingsDialog = () => {
         label: "AI Weekly Report",
         description: "Generates weekly summary from daily notes",
         model: "gpt-4o-mini",
+        customModel: "",
         systemPrompt: `You are an assistant that creates weekly summaries...`,
       },
     },
@@ -108,6 +120,47 @@ export const SettingsDialog = () => {
         [featureKey]: {
           ...prev.features[featureKey],
           enabled: !prev.features[featureKey].enabled,
+        },
+      },
+    }));
+  };
+
+  const handleModelChange = (value: string, featureKey: keyof Settings['features']) => {
+    setSettings((prev) => ({
+      ...prev,
+      features: {
+        ...prev.features,
+        [featureKey]: {
+          ...prev.features[featureKey],
+          model: value,
+        },
+      },
+    }));
+  };
+
+  const handleCustomModelChange = (value: string, featureKey: keyof Settings['features']) => {
+    setSettings((prev) => ({
+      ...prev,
+      features: {
+        ...prev.features,
+        [featureKey]: {
+          ...prev.features[featureKey],
+          customModel: value,
+        },
+      },
+    }));
+  };
+
+  const handlePromptChange = (value: string) => {
+    if (!selectedFeatureKey) return;
+    
+    setSettings((prev) => ({
+      ...prev,
+      features: {
+        ...prev.features,
+        [selectedFeatureKey]: {
+          ...prev.features[selectedFeatureKey],
+          systemPrompt: value,
         },
       },
     }));
@@ -196,50 +249,51 @@ export const SettingsDialog = () => {
                 <div className="space-y-4 mt-4 pt-4 border-t">
                   <div className="space-y-2">
                     <Label>Model</Label>
-                    <Select
-                      value={feature.model}
-                      onValueChange={(value) =>
-                        setSettings((prev) => ({
-                          ...prev,
-                          features: {
-                            ...prev.features,
-                            [key]: {
-                              ...prev.features[key as keyof Settings['features']],
-                              model: value,
-                            },
-                          },
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-4o-mini">GPT-4O Mini</SelectItem>
-                        <SelectItem value="gpt-4o">GPT-4O</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <Select
+                        value={feature.model}
+                        onValueChange={(value) => handleModelChange(value, key as keyof Settings['features'])}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MODEL_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {feature.model === "custom" && (
+                        <Input
+                          placeholder="Enter custom model name..."
+                          value={feature.customModel}
+                          onChange={(e) => handleCustomModelChange(e.target.value, key as keyof Settings['features'])}
+                          className="mt-2"
+                        />
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>System Prompt</Label>
-                    <Textarea
-                      placeholder="Enter system prompt rules..."
-                      value={feature.systemPrompt}
-                      onChange={(e) =>
-                        setSettings((prev) => ({
-                          ...prev,
-                          features: {
-                            ...prev.features,
-                            [key]: {
-                              ...prev.features[key as keyof Settings['features']],
-                              systemPrompt: e.target.value,
-                            },
-                          },
-                        }))
-                      }
-                      className="min-h-[200px] font-mono text-sm"
-                    />
+                    <div className="flex items-center justify-between">
+                      <Label>System Prompt</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedFeatureKey(key as keyof Settings['features'])}
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Prompt
+                      </Button>
+                    </div>
+                    <div className="bg-muted p-2 rounded-md">
+                      <p className="text-xs font-mono truncate">
+                        {feature.systemPrompt.substring(0, 100)}...
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -385,6 +439,24 @@ export const SettingsDialog = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!selectedFeatureKey} onOpenChange={() => setSelectedFeatureKey(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>
+              Edit System Prompt - {selectedFeatureKey && settings.features[selectedFeatureKey].label}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Textarea
+              value={selectedFeatureKey ? settings.features[selectedFeatureKey].systemPrompt : ""}
+              onChange={(e) => handlePromptChange(e.target.value)}
+              className="min-h-[60vh] font-mono text-sm"
+              placeholder="Enter system prompt rules..."
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
