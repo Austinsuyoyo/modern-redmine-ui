@@ -49,7 +49,7 @@ export const SettingsDialog = () => {
   const { toast } = useToast();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [selectedFeatureKey, setSelectedFeatureKey] = useState<keyof Settings['features'] | null>(null);
-  const [tempPrompt, setTempPrompt] = useState(""); // 臨時存儲編輯中的prompt
+  const [tempPrompt, setTempPrompt] = useState("");
   const [settings, setSettings] = useState<Settings>({
     notifications: true,
     autoSync: true,
@@ -243,11 +243,25 @@ export const SettingsDialog = () => {
         </TabsContent>
 
         <TabsContent value="ai" className="space-y-6">
-          <div className="grid gap-6">
+          <Tabs defaultValue="AI_EDITOR_ASSIST" className="w-full">
+            <div className="flex justify-between items-center mb-6">
+              <TabsList>
+                {Object.entries(settings.features).map(([key, feature]) => (
+                  <TabsTrigger 
+                    key={key} 
+                    value={key}
+                    className="relative"
+                  >
+                    {feature.label}
+                    <span className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${feature.enabled ? 'bg-primary' : 'bg-muted-foreground'}`} />
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+
             {Object.entries(settings.features).map(([key, feature]) => (
-              <div key={key} className="rounded-lg border overflow-hidden">
-                {/* 標題列 */}
-                <div className="bg-muted p-4 flex items-center justify-between">
+              <TabsContent key={key} value={key} className="space-y-4">
+                <div className="flex items-start justify-between p-4 rounded-lg border bg-card">
                   <div className="space-y-1">
                     <h3 className="text-lg font-semibold">{feature.label}</h3>
                     <p className="text-sm text-muted-foreground">
@@ -260,12 +274,11 @@ export const SettingsDialog = () => {
                   />
                 </div>
 
-                {/* 內容區 */}
                 {feature.enabled && (
-                  <div className="p-4 space-y-4 bg-background">
-                    <div className="space-y-2">
-                      <Label>Model</Label>
-                      <div className="space-y-2">
+                  <div className="space-y-6 p-4">
+                    <div className="space-y-4">
+                      <Label>Model Configuration</Label>
+                      <div className="grid gap-4 p-4 rounded-lg border bg-card">
                         <Select
                           value={feature.model}
                           onValueChange={(value) => handleModelChange(value, key as keyof Settings['features'])}
@@ -292,7 +305,7 @@ export const SettingsDialog = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <Label>System Prompt</Label>
                         <Button
@@ -304,17 +317,17 @@ export const SettingsDialog = () => {
                           Edit Prompt
                         </Button>
                       </div>
-                      <div className="bg-muted/50 p-3 rounded-md">
-                        <p className="text-xs font-mono whitespace-pre-wrap line-clamp-3">
+                      <div className="p-4 rounded-lg border bg-card">
+                        <p className="text-sm font-mono whitespace-pre-wrap line-clamp-3">
                           {feature.systemPrompt}
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
-              </div>
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="api" className="space-y-6">
