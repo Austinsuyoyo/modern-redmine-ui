@@ -4,10 +4,10 @@ import { Switch } from "./ui/switch";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Loader2, X, Pencil } from "lucide-react";
+import { Check, Loader2, X, Pencil, Save } from "lucide-react";
 import { Textarea } from "./ui/textarea";
 
 interface AIFeature {
@@ -49,6 +49,7 @@ export const SettingsDialog = () => {
   const { toast } = useToast();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [selectedFeatureKey, setSelectedFeatureKey] = useState<keyof Settings['features'] | null>(null);
+  const [tempPrompt, setTempPrompt] = useState(""); // 臨時存儲編輯中的prompt
   const [settings, setSettings] = useState<Settings>({
     notifications: true,
     autoSync: true,
@@ -151,7 +152,7 @@ export const SettingsDialog = () => {
     }));
   };
 
-  const handlePromptChange = (value: string) => {
+  const handlePromptSave = () => {
     if (!selectedFeatureKey) return;
     
     setSettings((prev) => ({
@@ -160,10 +161,22 @@ export const SettingsDialog = () => {
         ...prev.features,
         [selectedFeatureKey]: {
           ...prev.features[selectedFeatureKey],
-          systemPrompt: value,
+          systemPrompt: tempPrompt,
         },
       },
     }));
+
+    toast({
+      title: "Prompt Saved",
+      description: "Your changes have been saved successfully.",
+    });
+
+    setSelectedFeatureKey(null);
+  };
+
+  const handleEditPrompt = (key: keyof Settings['features']) => {
+    setSelectedFeatureKey(key);
+    setTempPrompt(settings.features[key].systemPrompt);
   };
 
   return (
@@ -230,75 +243,78 @@ export const SettingsDialog = () => {
         </TabsContent>
 
         <TabsContent value="ai" className="space-y-6">
-          {Object.entries(settings.features).map(([key, feature]) => (
-            <div key={key} className="space-y-4 p-4 rounded-lg border">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <Label>{feature.label}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
+          <div className="grid gap-6">
+            {Object.entries(settings.features).map(([key, feature]) => (
+              <div key={key} className="rounded-lg border overflow-hidden">
+                {/* 標題列 */}
+                <div className="bg-muted p-4 flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold">{feature.label}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={feature.enabled}
+                    onCheckedChange={() => toggleFeature(key as keyof Settings['features'])}
+                  />
                 </div>
-                <Switch
-                  checked={feature.enabled}
-                  onCheckedChange={() => toggleFeature(key as keyof Settings['features'])}
-                />
-              </div>
 
-              {feature.enabled && (
-                <div className="space-y-4 mt-4 pt-4 border-t">
-                  <div className="space-y-2">
-                    <Label>Model</Label>
+                {/* 內容區 */}
+                {feature.enabled && (
+                  <div className="p-4 space-y-4 bg-background">
                     <div className="space-y-2">
-                      <Select
-                        value={feature.model}
-                        onValueChange={(value) => handleModelChange(value, key as keyof Settings['features'])}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {MODEL_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label>Model</Label>
+                      <div className="space-y-2">
+                        <Select
+                          value={feature.model}
+                          onValueChange={(value) => handleModelChange(value, key as keyof Settings['features'])}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {MODEL_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
 
-                      {feature.model === "custom" && (
-                        <Input
-                          placeholder="Enter custom model name..."
-                          value={feature.customModel}
-                          onChange={(e) => handleCustomModelChange(e.target.value, key as keyof Settings['features'])}
-                          className="mt-2"
-                        />
-                      )}
+                        {feature.model === "custom" && (
+                          <Input
+                            placeholder="Enter custom model name..."
+                            value={feature.customModel}
+                            onChange={(e) => handleCustomModelChange(e.target.value, key as keyof Settings['features'])}
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>System Prompt</Label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditPrompt(key as keyof Settings['features'])}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Edit Prompt
+                        </Button>
+                      </div>
+                      <div className="bg-muted/50 p-3 rounded-md">
+                        <p className="text-xs font-mono whitespace-pre-wrap line-clamp-3">
+                          {feature.systemPrompt}
+                        </p>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>System Prompt</Label>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedFeatureKey(key as keyof Settings['features'])}
-                      >
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Edit Prompt
-                      </Button>
-                    </div>
-                    <div className="bg-muted p-2 rounded-md">
-                      <p className="text-xs font-mono truncate">
-                        {feature.systemPrompt.substring(0, 100)}...
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
+          </div>
         </TabsContent>
 
         <TabsContent value="api" className="space-y-6">
@@ -440,7 +456,12 @@ export const SettingsDialog = () => {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selectedFeatureKey} onOpenChange={() => setSelectedFeatureKey(null)}>
+      <Dialog open={!!selectedFeatureKey} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedFeatureKey(null);
+          setTempPrompt("");
+        }
+      }}>
         <DialogContent className="max-w-3xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>
@@ -449,12 +470,22 @@ export const SettingsDialog = () => {
           </DialogHeader>
           <div className="mt-4">
             <Textarea
-              value={selectedFeatureKey ? settings.features[selectedFeatureKey].systemPrompt : ""}
-              onChange={(e) => handlePromptChange(e.target.value)}
+              value={tempPrompt}
+              onChange={(e) => setTempPrompt(e.target.value)}
               className="min-h-[60vh] font-mono text-sm"
               placeholder="Enter system prompt rules..."
             />
           </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setSelectedFeatureKey(null)}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button onClick={handlePromptSave}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
