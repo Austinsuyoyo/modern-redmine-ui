@@ -39,9 +39,14 @@ interface Settings {
 }
 
 const MODEL_OPTIONS = [
-  { value: "gpt-4o-mini", label: "GPT-4O Mini" },
-  { value: "gpt-4o", label: "GPT-4O" },
-  { value: "custom", label: "Custom Model" }
+  { value: "gpt-4", label: "GPT-4 (OpenAI)" },
+  { value: "gpt-4o", label: "GPT-4 Turbo (OpenAI)" },
+  { value: "gpt-4o-mini", label: "GPT-4 Turbo Mini (OpenAI)" },
+  { value: "claude-3-opus", label: "Claude 3 Opus (Anthropic)" },
+  { value: "claude-3-sonnet", label: "Claude 3 Sonnet (Anthropic)" },
+  { value: "claude-3-haiku", label: "Claude 3 Haiku (Anthropic)" },
+  { value: "gemini-pro", label: "Gemini Pro (Google)" },
+  { value: "gemini-ultra", label: "Gemini Ultra (Google)" },
 ];
 
 interface SettingsDialogProps {
@@ -206,7 +211,6 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
   const sections = [
     { id: "settings", label: "Basic Settings", icon: Settings },
     { id: "features", label: "Features", icon: Puzzle },
-    { id: "advanced", label: "Advanced", icon: Terminal },
     { id: "feedback", label: "Feedback", icon: MessageSquare },
     { id: "about", label: "About", icon: Info }
   ];
@@ -252,23 +256,54 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
 
               <div className="space-y-6">
                 <div className="space-y-2">
+                  <Label>API URL</Label>
+                  <Input
+                    type="url"
+                    placeholder="Enter API endpoint URL"
+                    value={settings.apiUrl}
+                    onChange={(e) =>
+                      setSettings({ ...settings, apiUrl: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label>API Key</Label>
-                  <div className="relative">
-                    <Input
-                      type="password"
-                      placeholder="Enter your API key"
-                      value={settings.apiKey}
-                      onChange={(e) =>
-                        setSettings({ ...settings, apiKey: e.target.value })
-                      }
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                      onClick={() => setSettings({ ...settings, apiKey: "" })}
+                  <div className="flex space-x-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type="password"
+                        placeholder="Enter your API key"
+                        value={settings.apiKey}
+                        onChange={(e) =>
+                          setSettings({ ...settings, apiKey: e.target.value })
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                        onClick={() => setSettings({ ...settings, apiKey: "" })}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button 
+                      onClick={testConnection} 
+                      disabled={isTestingConnection || !settings.apiUrl || !settings.apiKey}
+                      className="flex-none"
                     >
-                      <X className="h-4 w-4" />
+                      {isTestingConnection ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Verify
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -293,21 +328,6 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                     </div>
                   </div>
                 </div>
-
-                <Button 
-                  onClick={testConnection} 
-                  disabled={isTestingConnection || !settings.apiUrl || !settings.apiKey}
-                  className="w-full"
-                >
-                  {isTestingConnection ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Testing Connection...
-                    </>
-                  ) : (
-                    "Test Connection"
-                  )}
-                </Button>
               </div>
             </>
           )}
