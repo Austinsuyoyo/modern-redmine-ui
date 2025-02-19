@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Loader2, X, Pencil, Save } from "lucide-react";
+import { Check, Loader2, X, Pencil, Save, Settings, Puzzle, Terminal, FileText, ChevronRight } from "lucide-react";
 import { Textarea } from "./ui/textarea";
 
 interface AIFeature {
@@ -180,295 +180,122 @@ export const SettingsDialog = () => {
   };
 
   return (
-    <div className="w-full">
-      <h2 className="text-2xl font-semibold mb-6">Settings</h2>
-      
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="ai">AI Features</TabsTrigger>
-          <TabsTrigger value="api">API Settings</TabsTrigger>
-          <TabsTrigger value="script">Script</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Notifications</Label>
-              <p className="text-sm text-muted-foreground">
-                Enable desktop notifications
-              </p>
-            </div>
-            <Switch
-              checked={settings.notifications}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, notifications: checked })
-              }
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Auto Sync</Label>
-              <p className="text-sm text-muted-foreground">
-                Automatically sync changes
-              </p>
-            </div>
-            <Switch
-              checked={settings.autoSync}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, autoSync: checked })
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Language</Label>
-            <Select
-              value={settings.language}
-              onValueChange={(value) =>
-                setSettings({ ...settings, language: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="ja">日本語</SelectItem>
-                <SelectItem value="zh">中文</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="ai" className="space-y-6">
-          <Tabs defaultValue="AI_EDITOR_ASSIST" className="w-full">
-            <div className="flex justify-between items-center mb-6">
-              <TabsList>
-                {Object.entries(settings.features).map(([key, feature]) => (
-                  <TabsTrigger 
-                    key={key} 
-                    value={key}
-                    className="relative"
-                  >
-                    {feature.label}
-                    <span className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${feature.enabled ? 'bg-primary' : 'bg-muted-foreground'}`} />
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-
-            {Object.entries(settings.features).map(([key, feature]) => (
-              <TabsContent key={key} value={key} className="space-y-4">
-                <div className="flex items-start justify-between p-4 rounded-lg border bg-card">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-semibold">{feature.label}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                  <Switch
-                    checked={feature.enabled}
-                    onCheckedChange={() => toggleFeature(key as keyof Settings['features'])}
-                  />
-                </div>
-
-                {feature.enabled && (
-                  <div className="space-y-6 p-4">
-                    <div className="space-y-4">
-                      <Label>Model Configuration</Label>
-                      <div className="grid gap-4 p-4 rounded-lg border bg-card">
-                        <Select
-                          value={feature.model}
-                          onValueChange={(value) => handleModelChange(value, key as keyof Settings['features'])}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {MODEL_OPTIONS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        {feature.model === "custom" && (
-                          <Input
-                            placeholder="Enter custom model name..."
-                            value={feature.customModel}
-                            onChange={(e) => handleCustomModelChange(e.target.value, key as keyof Settings['features'])}
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Label>System Prompt</Label>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditPrompt(key as keyof Settings['features'])}
-                        >
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Edit Prompt
-                        </Button>
-                      </div>
-                      <div className="p-4 rounded-lg border bg-card">
-                        <p className="text-sm font-mono whitespace-pre-wrap line-clamp-3">
-                          {feature.systemPrompt}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </TabsContent>
-
-        <TabsContent value="api" className="space-y-6">
-          <div className="space-y-2">
-            <Label>API URL</Label>
-            <Input
-              placeholder="Enter API URL"
-              value={settings.apiUrl}
-              onChange={(e) =>
-                setSettings({ ...settings, apiUrl: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>API Key</Label>
-            <Input
-              type="password"
-              placeholder="Enter API Key"
-              value={settings.apiKey}
-              onChange={(e) =>
-                setSettings({ ...settings, apiKey: e.target.value })
-              }
-            />
-          </div>
-
-          <Button 
-            onClick={testConnection} 
-            disabled={isTestingConnection || !settings.apiUrl || !settings.apiKey}
-            className="w-full relative"
+    <div className="w-full min-h-[600px] flex">
+      {/* Sidebar */}
+      <div className="w-64 border-r bg-muted/10">
+        <div className="p-4 border-b">
+          <h2 className="text-xl font-semibold">AI Assistant</h2>
+        </div>
+        <nav className="p-2 space-y-1">
+          <button
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium bg-primary/10 text-primary"
           >
-            {isTestingConnection ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Testing Connection...
-              </>
-            ) : (
-              <>
-                Test Connection
-              </>
-            )}
-          </Button>
-        </TabsContent>
-
-        <TabsContent value="script" className="space-y-6">
-          <div className="space-y-2">
-            <Label>Update Interval (minutes)</Label>
-            <Input
-              type="number"
-              min="1"
-              max="1440"
-              value={settings.script.updateInterval}
-              onChange={(e) =>
-                setSettings({
-                  ...settings,
-                  script: {
-                    ...settings.script,
-                    updateInterval: parseInt(e.target.value) || 60,
-                  },
-                })
-              }
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Debug Mode</Label>
-              <p className="text-sm text-muted-foreground">
-                Enable console logging for debugging
-              </p>
+            <Settings className="h-4 w-4" />
+            <span>Basic Settings</span>
+          </button>
+          <button
+            className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center space-x-3">
+              <Puzzle className="h-4 w-4" />
+              <span>Features</span>
             </div>
-            <Switch
-              checked={settings.script.debugMode}
-              onCheckedChange={(checked) =>
-                setSettings({
-                  ...settings,
-                  script: { ...settings.script, debugMode: checked },
-                })
-              }
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Experimental Features</Label>
-              <p className="text-sm text-muted-foreground">
-                Enable experimental script features
-              </p>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <button
+            className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center space-x-3">
+              <Terminal className="h-4 w-4" />
+              <span>Advanced</span>
             </div>
-            <Switch
-              checked={settings.script.allowExperimental}
-              onCheckedChange={(checked) =>
-                setSettings({
-                  ...settings,
-                  script: { ...settings.script, allowExperimental: checked },
-                })
-              }
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Auto Backup</Label>
-              <p className="text-sm text-muted-foreground">
-                Automatically backup user data
-              </p>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <button
+            className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center space-x-3">
+              <FileText className="h-4 w-4" />
+              <span>Documentation</span>
             </div>
-            <Switch
-              checked={settings.script.autoBackup}
-              onCheckedChange={(checked) =>
-                setSettings({
-                  ...settings,
-                  script: { ...settings.script, autoBackup: checked },
-                })
-              }
-            />
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold">API Configuration</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Configure your API settings and access credentials
+            </p>
           </div>
 
-          {settings.script.autoBackup && (
+          <div className="space-y-6">
             <div className="space-y-2">
-              <Label>Backup Interval (hours)</Label>
-              <Input
-                type="number"
-                min="1"
-                max="168"
-                value={settings.script.backupInterval}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    script: {
-                      ...settings.script,
-                      backupInterval: parseInt(e.target.value) || 24,
-                    },
-                  })
-                }
-              />
+              <Label>API Key</Label>
+              <div className="relative">
+                <Input
+                  type="password"
+                  placeholder="Enter your API key"
+                  value={settings.apiKey}
+                  onChange={(e) =>
+                    setSettings({ ...settings, apiKey: e.target.value })
+                  }
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setSettings({ ...settings, apiKey: "" })}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
 
+            <div className="bg-blue-50 dark:bg-blue-950/50 border-l-4 border-blue-500 p-4 rounded-r-md">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-blue-700 dark:text-blue-200">
+                    Your API key is securely stored and used only for authentication with the AI service.
+                  </p>
+                  <p className="mt-2 text-sm">
+                    <a href="#" className="text-blue-700 dark:text-blue-200 hover:text-blue-600 inline-flex items-center">
+                      Learn more about API key security
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button 
+              onClick={testConnection} 
+              disabled={isTestingConnection || !settings.apiUrl || !settings.apiKey}
+              className="w-full"
+            >
+              {isTestingConnection ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Testing Connection...
+                </>
+              ) : (
+                "Test Connection"
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Prompt Edit Dialog */}
       <Dialog open={!!selectedFeatureKey} onOpenChange={(open) => {
         if (!open) {
           setSelectedFeatureKey(null);
