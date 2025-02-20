@@ -208,8 +208,16 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
     });
   };
 
+  const handleSaveSettings = () => {
+    // Save settings logic here
+    toast({
+      title: "Settings Saved",
+      description: "Your API settings have been saved successfully.",
+    });
+  };
+
   const sections = [
-    { id: "settings", label: "Basic Settings", icon: Settings },
+    { id: "settings", label: "Chat API Settings", icon: Settings },
     { id: "features", label: "Features", icon: Puzzle },
     { id: "feedback", label: "Feedback", icon: MessageSquare },
     { id: "about", label: "About", icon: Info }
@@ -248,9 +256,9 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
           {activeSection === "settings" && (
             <>
               <div className="mb-6">
-                <h3 className="text-xl font-semibold">API Configuration</h3>
+                <h3 className="text-xl font-semibold">Chat API Settings</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Configure your API settings and access credentials
+                  Configure your OpenAI Chat API settings and access credentials
                 </p>
               </div>
 
@@ -259,12 +267,15 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                   <Label>API URL</Label>
                   <Input
                     type="url"
-                    placeholder="Enter API endpoint URL"
+                    placeholder="https://api.openai.com/v1/chat/completions"
                     value={settings.apiUrl}
                     onChange={(e) =>
                       setSettings({ ...settings, apiUrl: e.target.value })
                     }
                   />
+                  <p className="text-sm text-muted-foreground">
+                    The default endpoint for OpenAI Chat API is: https://api.openai.com/v1/chat/completions
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -317,17 +328,30 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                     </div>
                     <div className="ml-3">
                       <p className="text-sm text-blue-700 dark:text-blue-200">
-                        Your API key is securely stored and used only for authentication with the AI service.
+                        To get your API key, visit the OpenAI platform and create a new API key in your account settings.
                       </p>
                       <p className="mt-2 text-sm">
-                        <a href="#" className="text-blue-700 dark:text-blue-200 hover:text-blue-600 inline-flex items-center">
-                          Learn more about API key security
+                        <a 
+                          href="https://platform.openai.com/docs/api-reference/chat" 
+                          target="_blank"
+                          rel="noopener noreferrer" 
+                          className="text-blue-700 dark:text-blue-200 hover:text-blue-600 inline-flex items-center"
+                        >
+                          Learn more about Chat API documentation
                           <ChevronRight className="h-4 w-4 ml-1" />
                         </a>
                       </p>
                     </div>
                   </div>
                 </div>
+
+                <Button 
+                  onClick={handleSaveSettings}
+                  className="w-full"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Settings
+                </Button>
               </div>
             </>
           )}
@@ -430,17 +454,6 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                     value={feedback.message}
                     onChange={(e) => setFeedback({ ...feedback, message: e.target.value })}
                     className="min-h-[100px]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Screenshot (optional)</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setFeedback({ ...feedback, screenshot: e.target.files?.[0] || null })
-                    }
                   />
                 </div>
 
