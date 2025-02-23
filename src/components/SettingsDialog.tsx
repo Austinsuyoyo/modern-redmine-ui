@@ -309,7 +309,7 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
 
                 <div className="space-y-2">
                   <Label>API Key</Label>
-                  <div className="space-x-2">
+                  <div className="flex items-center space-x-2">
                     <div className="relative flex-1">
                       <Input
                         type="password"
@@ -330,37 +330,29 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                         </Button>
                       )}
                     </div>
-                    <Button 
-                      onClick={testConnection} 
+                    <button
+                      onClick={testConnection}
                       disabled={isTestingConnection || !settings.apiUrl || !settings.apiKey}
-                      className={`flex-none min-w-24 ${
-                        connectionStatus === 'success' ? 'bg-green-500 hover:bg-green-600' :
-                        connectionStatus === 'error' ? 'bg-red-500 hover:bg-red-600' :
-                        ''
-                      }`}
+                      className={`
+                        px-4 py-2 rounded-lg font-medium
+                        transition-colors duration-200
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                        ${isTestingConnection ? 'bg-blue-100 text-blue-700' : 
+                          connectionStatus === 'success' ? 'bg-green-100 text-green-700' :
+                          connectionStatus === 'error' ? 'bg-red-100 text-red-700' :
+                          'bg-blue-100 text-blue-700'}
+                      `}
                     >
                       {isTestingConnection ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Verifying
-                        </>
+                        <div className="animate-spin w-5 h-5 border-2 border-blue-700 border-t-transparent rounded-full" />
                       ) : connectionStatus === 'success' ? (
-                        <>
-                          <Check className="h-4 w-4 mr-2" />
-                          Verified
-                        </>
+                        <Check className="w-5 h-5" />
                       ) : connectionStatus === 'error' ? (
-                        <>
-                          <X className="h-4 w-4 mr-2" />
-                          Failed
-                        </>
+                        <X className="w-5 h-5" />
                       ) : (
-                        <>
-                          <Check className="h-4 w-4 mr-2" />
-                          Verify
-                        </>
+                        <Check className="w-5 h-5" />
                       )}
-                    </Button>
+                    </button>
                   </div>
                 </div>
 
