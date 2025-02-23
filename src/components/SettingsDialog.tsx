@@ -47,6 +47,7 @@ const MODEL_OPTIONS = [
   { value: "claude-3-haiku", label: "claude-3-haiku" },
   { value: "gemini-pro", label: "gemini-pro" },
   { value: "gemini-ultra", label: "gemini-ultra" },
+  { value: "custom", label: "custom" },
 ];
 
 interface SettingsDialogProps {
@@ -56,6 +57,8 @@ interface SettingsDialogProps {
 export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
   const { toast } = useToast();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'none' | 'success' | 'error'>('none');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [selectedFeatureKey, setSelectedFeatureKey] = useState<keyof Settings['features'] | null>(null);
   const [tempPrompt, setTempPrompt] = useState("");
   const [activeSection, setActiveSection] = useState("settings");
@@ -109,16 +112,19 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
 
   const testConnection = async () => {
     setIsTestingConnection(true);
+    setConnectionStatus('none');
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
       // Simulated success
+      setConnectionStatus('success');
       toast({
         title: "Connection Successful",
         description: "API connection has been verified.",
       });
     } catch (error) {
+      setConnectionStatus('error');
       toast({
         title: "Connection Failed",
         description: "Unable to connect to the API. Please check your credentials.",
@@ -196,16 +202,39 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
   };
 
   const handleFeedbackSubmit = async () => {
-    toast({
-      title: "Feedback Submitted",
-      description: "Thank you for your feedback!",
-    });
-    setFeedback({
-      type: "",
-      message: "",
-      contact: "",
-      screenshot: null,
-    });
+    if (!feedback.type || !feedback.message) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingFeedback(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      toast({
+        title: "Feedback Submitted",
+        description: "Thank you for your feedback!",
+      });
+      setFeedback({
+        type: "",
+        message: "",
+        contact: "",
+        screenshot: null,
+      });
+    } catch (error) {
+      toast({
+        title: "Submission Failed",
+        description: "Unable to submit feedback. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
   };
 
   const handleSaveSettings = () => {
@@ -280,7 +309,7 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
 
                 <div className="space-y-2">
                   <Label>API Key</Label>
-                  <div className="flex space-x-2">
+                  <div className="space-x-2">
                     <div className="relative flex-1">
                       <Input
                         type="password"
@@ -304,12 +333,26 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                     <Button 
                       onClick={testConnection} 
                       disabled={isTestingConnection || !settings.apiUrl || !settings.apiKey}
-                      className="flex-none min-w-24"
+                      className={`flex-none min-w-24 ${
+                        connectionStatus === 'success' ? 'bg-green-500 hover:bg-green-600' :
+                        connectionStatus === 'error' ? 'bg-red-500 hover:bg-red-600' :
+                        ''
+                      }`}
                     >
                       {isTestingConnection ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           Verifying
+                        </>
+                      ) : connectionStatus === 'success' ? (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Verified
+                        </>
+                      ) : connectionStatus === 'error' ? (
+                        <>
+                          <X className="h-4 w-4 mr-2" />
+                          Failed
                         </>
                       ) : (
                         <>
@@ -347,13 +390,15 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleSaveSettings}
-                  className="w-full"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
+                <div className="flex justify-end space-x-2 mt-6">
+                  <Button variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveSettings}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                </div>
               </div>
             </>
           )}
@@ -469,8 +514,19 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                   />
                 </div>
 
-                <Button onClick={handleFeedbackSubmit} className="w-full">
-                  Submit Feedback
+                <Button 
+                  onClick={handleFeedbackSubmit} 
+                  className="w-full"
+                  disabled={isSubmittingFeedback}
+                >
+                  {isSubmittingFeedback ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Feedback'
+                  )}
                 </Button>
               </div>
             </>
