@@ -58,7 +58,6 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
   const { toast } = useToast();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'none' | 'success' | 'error'>('none');
-  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [selectedFeatureKey, setSelectedFeatureKey] = useState<keyof Settings['features'] | null>(null);
   const [tempPrompt, setTempPrompt] = useState("");
   const [activeSection, setActiveSection] = useState("settings");
@@ -110,6 +109,19 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
     },
   });
 
+  // 重構：將按鈕樣式邏輯抽離出來，使代碼更清晰
+  const getVerifyButtonStyles = () => {
+    if (isTestingConnection) return 'bg-blue-100 text-blue-700';
+    switch (connectionStatus) {
+      case 'success':
+        return 'bg-green-100 text-green-700';
+      case 'error':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-primary/10 text-primary hover:bg-primary/20';
+    }
+  };
+
   const testConnection = async () => {
     setIsTestingConnection(true);
     setConnectionStatus('none');
@@ -117,7 +129,6 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
-      // Simulated success
       setConnectionStatus('success');
       toast({
         title: "Connection Successful",
@@ -337,10 +348,7 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                         px-4 py-2 rounded-lg font-medium
                         transition-colors duration-200
                         disabled:opacity-50 disabled:cursor-not-allowed
-                        ${isTestingConnection ? 'bg-blue-100 text-blue-700' : 
-                          connectionStatus === 'success' ? 'bg-green-100 text-green-700' :
-                          connectionStatus === 'error' ? 'bg-red-100 text-red-700' :
-                          'bg-blue-100 text-blue-700'}
+                        ${getVerifyButtonStyles()}
                       `}
                     >
                       {isTestingConnection ? (
@@ -388,7 +396,7 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
                   </Button>
                   <Button onClick={handleSaveSettings}>
                     <Save className="h-4 w-4 mr-2" />
-                    Save
+                    Save Changes
                   </Button>
                 </div>
               </div>
