@@ -58,6 +58,7 @@ export const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
   const { toast } = useToast();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'none' | 'success' | 'error'>('none');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [selectedFeatureKey, setSelectedFeatureKey] = useState<keyof Settings['features'] | null>(null);
   const [tempPrompt, setTempPrompt] = useState("");
   const [activeSection, setActiveSection] = useState("settings");
